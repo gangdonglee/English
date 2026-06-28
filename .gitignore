@@ -1,0 +1,10 @@
+# 기출/정답 원본 파일 (원본 데이터 — 앱 구동엔 불필요, kichul.js에 추출 완료)
+*.pdf
+*.hwp
+*.hwpx
+
+# OS / 편집기
+Thumbs.db
+.DS_Store
+desktop.ini
+.vscode/
