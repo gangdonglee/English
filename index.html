@@ -10,39 +10,36 @@
   <div class="wrap">
     <header>
       <h1>9급 공무원 <span class="accent">전산직 영어</span></h1>
-      <p>어휘 · 문법 · 독해 한 번에 — 매일 조금씩 꾸준히 💪</p>
+      <p>국가직 9급 기출(2016~2025) 기반 학습 — 어휘 · 어법 · 독해</p>
     </header>
 
-    <!-- 진행 통계 -->
     <div class="stats">
       <div class="stat">외운 단어<b id="stat-words">0 / 0</b></div>
+      <div class="stat">오늘 복습<b id="stat-review">0</b></div>
       <div class="stat">푼 문제<b id="stat-solved">0</b></div>
       <div class="stat">정답률<b id="stat-acc">0%</b></div>
-      <div class="stat">복습 단어<b id="stat-wrong">0</b></div>
     </div>
 
     <!-- 메인 탭 -->
     <div class="tabs">
       <button class="tab active" data-tab="kichul">📝 기출</button>
       <button class="tab" data-tab="vocab">📘 어휘</button>
-      <button class="tab" data-tab="grammar">✏️ 문법</button>
+      <button class="tab" data-tab="grammar">✏️ 어법</button>
       <button class="tab" data-tab="reading">📖 독해</button>
     </div>
 
     <!-- ===================== 기출문제 ===================== -->
     <section class="panel active" id="panel-kichul">
-      <!-- 연도 선택 -->
       <div class="card" id="kichul-home">
         <h2 style="font-size:19px;margin-bottom:6px">국가직 9급 영어 기출</h2>
-        <p class="muted" style="margin-bottom:18px">2016~2025 · 실제 기출 200문항 · 공식 최종정답으로 채점</p>
+        <p class="muted" style="margin-bottom:18px">2016~2025 · 실제 기출 200문항 · 공식 최종정답 채점 · 문항별 해설</p>
         <div class="year-grid" id="year-grid"></div>
         <p class="muted" style="font-size:12px;margin-top:16px;line-height:1.7">
           ※ 어법·문장삽입 등 일부 유형은 보기가 지문 안에 표시됩니다. 옛 연도(2016~2021)는 원본 PDF 특성상
-          한글 보기의 띄어쓰기가 일부 붙어 보일 수 있어요(영문·정답은 정확).
+          한글 보기의 띄어쓰기가 일부 붙어 보일 수 있어요(영문·정답·해설은 정확).
         </p>
       </div>
 
-      <!-- 시험 풀이 -->
       <div id="kichul-exam" style="display:none">
         <div class="card">
           <div class="row" style="margin-bottom:6px">
@@ -53,7 +50,7 @@
           <div class="reading-title" id="exam-title"></div>
         </div>
         <div id="exam-questions"></div>
-        <div class="card" id="exam-footer">
+        <div class="card prac-foot">
           <div class="row">
             <button class="btn" id="exam-grade">채점하기</button>
             <button class="btn ghost" id="exam-reset" style="display:none">다시 풀기</button>
@@ -68,103 +65,149 @@
     <section class="panel" id="panel-vocab">
       <div class="card">
         <div class="subtabs">
-          <button class="subtab active" data-vmode="flash">플래시카드</button>
-          <button class="subtab" data-vmode="quiz">단어 퀴즈</button>
+          <button class="subtab active" data-v="deck">단어덱</button>
+          <button class="subtab" data-v="review">🔁 복습</button>
+          <button class="subtab" data-v="quiz">어휘 기출문제</button>
         </div>
 
-        <!-- 플래시카드 -->
-        <div id="vocab-flash">
-          <div class="flash" id="flash">
-            <div class="flash-inner">
-              <div class="flash-face flash-front" id="flash-front"></div>
-              <div class="flash-face flash-back" id="flash-back"></div>
+        <!-- 단어덱 (Day 단위 학습) -->
+        <div id="v-deck">
+          <div class="chips" id="deck-filter">
+            <button class="chip active" data-cat="all">전체</button>
+            <button class="chip" data-cat="기출">기출</button>
+            <button class="chip" data-cat="빈출">빈출 핵심</button>
+            <button class="chip" data-cat="실용중급">실용·중급</button>
+            <button class="chip" data-cat="생활영어">생활영어</button>
+          </div>
+          <div class="row" style="margin:12px 0;align-items:center;gap:8px">
+            <span class="muted">하루</span>
+            <div class="chips" id="dayN-chips">
+              <button class="chip" data-n="20">20</button>
+              <button class="chip" data-n="30">30</button>
+              <button class="chip active" data-n="36">36</button>
+              <button class="chip" data-n="50">50</button>
             </div>
-          </div>
-          <div class="flash-nav">
-            <button class="btn ghost small" id="btn-prev">← 이전</button>
-            <span class="counter" id="flash-counter">0 / 0</span>
-            <button class="btn ghost small" id="btn-next">다음 →</button>
-          </div>
-          <div class="row" style="margin-top:14px">
-            <button class="btn ghost" id="btn-known">외웠어요</button>
+            <span class="muted">개씩</span>
             <div class="spacer"></div>
-            <button class="btn ghost small" id="btn-shuffle">🔀 섞기</button>
+            <button class="btn small" id="deck-resume">이어서 학습 ▶</button>
+          </div>
+
+          <!-- Day 목록 -->
+          <div id="deck-days">
+            <p class="muted" id="deck-overall" style="margin-bottom:12px"></p>
+            <div class="day-grid" id="day-grid"></div>
+          </div>
+
+          <!-- Day 학습 (플래시카드) -->
+          <div id="deck-study" style="display:none">
+            <div class="row" style="margin-bottom:10px">
+              <button class="btn ghost small" id="day-back">← Day 목록</button>
+              <div class="spacer"></div>
+              <span class="counter" id="day-head"></span>
+            </div>
+            <div class="flash" id="flash">
+              <div class="flash-inner">
+                <div class="flash-face flash-front" id="flash-front"></div>
+                <div class="flash-face flash-back" id="flash-back"></div>
+              </div>
+            </div>
+            <div class="flash-nav">
+              <button class="btn ghost small" id="btn-prev">← 이전</button>
+              <span class="counter" id="flash-counter">0 / 0</span>
+              <button class="btn ghost small" id="btn-next">다음 →</button>
+            </div>
+            <div class="row" style="margin-top:14px">
+              <button class="btn ghost" id="btn-forgot" style="flex:1">😵 헷갈려요</button>
+              <button class="btn" id="btn-known" style="flex:1">✓ 외웠어요</button>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <button class="btn ghost small" id="btn-day-prev">◀ 이전 Day</button>
+              <button class="btn ghost small" id="btn-day-next">다음 Day ▶</button>
+              <div class="spacer"></div>
+              <button class="btn ghost small" id="btn-shuffle">🔀 섞기</button>
+            </div>
           </div>
         </div>
 
-        <!-- 단어 퀴즈 -->
-        <div id="vocab-quiz" style="display:none">
-          <div id="vquiz-setup">
-            <p class="center muted" style="margin-bottom:18px">
-              영↔한 4지선다 퀴즈입니다. 무작위 10문제를 풀어보세요.
-            </p>
-            <div class="row" style="justify-content:center">
-              <button class="btn" id="btn-start-quiz">퀴즈 시작 (10문제)</button>
-              <button class="btn ghost" id="btn-review-quiz">틀린 단어 복습</button>
+        <!-- 복습 (간격 반복 SRS) -->
+        <div id="v-review" style="display:none">
+          <div id="rev-empty" class="center" style="padding:34px 0">
+            <p class="muted" style="line-height:1.8">지금 복습할 단어가 없어요. 🎉<br>
+              단어덱에서 새 단어를 학습하면, <b>잊을 때쯤</b> 자동으로 여기에 모입니다.<br>
+              "외웠어요"는 점점 긴 간격으로, "헷갈려요"는 곧 다시 나타나요.</p>
+          </div>
+          <div id="rev-study" style="display:none">
+            <div class="row" style="margin-bottom:10px">
+              <span class="muted">잊을 때쯤 다시 보는 간격 반복 복습</span>
+              <div class="spacer"></div>
+              <span class="counter" id="rev-count"></span>
+            </div>
+            <div class="flash" id="rev-flash">
+              <div class="flash-inner">
+                <div class="flash-face flash-front" id="rev-front"></div>
+                <div class="flash-face flash-back" id="rev-back"></div>
+              </div>
+            </div>
+            <p class="muted center" style="margin:10px 0;font-size:13px">카드를 눌러 뜻 확인 → 아래 버튼</p>
+            <div class="row">
+              <button class="btn ghost" id="rev-forgot" style="flex:1">😵 또 헷갈려요</button>
+              <button class="btn" id="rev-ok" style="flex:1">✓ 기억났어요</button>
             </div>
           </div>
-
-          <div id="vquiz" style="display:none">
-            <div class="progressbar"><div id="vquiz-prog"></div></div>
-            <div class="q-meta"><span id="vquiz-meta"></span></div>
-            <div class="q-text" id="vquiz-q"></div>
-            <div class="options" id="vquiz-options"></div>
-            <div class="explain" id="vquiz-exp"></div>
-            <div class="row" style="margin-top:16px;justify-content:flex-end">
-              <button class="btn" id="vquiz-next" style="display:none">다음 →</button>
-            </div>
+          <div id="rev-done" class="center" style="display:none;padding:30px 0">
+            <div class="score" style="font-size:34px">복습 완료! 🎉</div>
+            <p class="muted">오늘 몫의 복습을 끝냈어요. 내일 또 만나요.</p>
           </div>
+        </div>
 
-          <div id="vquiz-result" style="display:none">
-            <div class="result">
-              <div class="score" id="vquiz-score"></div>
-              <div class="msg" id="vquiz-msg"></div>
-              <button class="btn" id="vquiz-again">다시 풀기</button>
+        <!-- 어휘 기출문제 -->
+        <div id="v-quiz" style="display:none">
+          <div class="row" style="margin-bottom:8px">
+            <span class="muted">어휘 유형 기출 · 무작위 출제</span>
+            <div class="spacer"></div>
+            <button class="btn ghost small" id="v-reshuffle">🔀 새 문제</button>
+          </div>
+          <div id="vq"></div>
+          <div class="card prac-foot">
+            <div class="row">
+              <button class="btn" id="v-grade">채점하기</button>
+              <div class="spacer"></div>
+              <span id="v-score" class="counter"></span>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ===================== 문법 ===================== -->
+    <!-- ===================== 어법 ===================== -->
     <section class="panel" id="panel-grammar">
       <div class="card">
         <div class="subtabs">
-          <button class="subtab active" data-gmode="study">개념 정리</button>
-          <button class="subtab" data-gmode="quiz">문법 문제</button>
+          <button class="subtab active" data-g="quiz">어법 기출문제</button>
+          <button class="subtab" data-g="study">문법 개념</button>
         </div>
 
-        <!-- 개념 정리 -->
-        <div id="grammar-study">
-          <p class="muted" style="margin-bottom:14px">제목을 눌러 빈출 문법 포인트를 펼쳐보세요.</p>
+        <!-- 어법 기출문제 -->
+        <div id="g-quiz">
+          <div class="row" style="margin-bottom:8px">
+            <span class="muted">어법·영작 유형 기출 · 무작위 출제</span>
+            <div class="spacer"></div>
+            <button class="btn ghost small" id="g-reshuffle">🔀 새 문제</button>
+          </div>
+          <div id="gq"></div>
+          <div class="card prac-foot">
+            <div class="row">
+              <button class="btn" id="g-grade">채점하기</button>
+              <div class="spacer"></div>
+              <span id="g-score" class="counter"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 문법 개념 -->
+        <div id="g-study" style="display:none">
+          <p class="muted" style="margin-bottom:14px">빈출 문법 포인트 (제목을 눌러 펼치기)</p>
           <div id="grammar-points"></div>
-        </div>
-
-        <!-- 문법 문제 -->
-        <div id="grammar-quiz" style="display:none">
-          <div id="gquiz-setup">
-            <p class="center muted" style="margin-bottom:18px">빈출 문법 4지선다 10문제. 해설로 개념을 확인하세요.</p>
-            <div class="center"><button class="btn" id="btn-start-gquiz">문제 시작 (10문제)</button></div>
-          </div>
-
-          <div id="gquiz" style="display:none">
-            <div class="progressbar"><div id="gquiz-prog"></div></div>
-            <div class="q-meta"><span id="gquiz-meta"></span></div>
-            <div class="q-text" id="gquiz-q"></div>
-            <div class="options" id="gquiz-options"></div>
-            <div class="explain" id="gquiz-exp"></div>
-            <div class="row" style="margin-top:16px;justify-content:flex-end">
-              <button class="btn" id="gquiz-next" style="display:none">다음 →</button>
-            </div>
-          </div>
-
-          <div id="gquiz-result" style="display:none">
-            <div class="result">
-              <div class="score" id="gquiz-score"></div>
-              <div class="msg" id="gquiz-msg"></div>
-              <button class="btn" id="gquiz-again">다시 풀기</button>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -172,18 +215,24 @@
     <!-- ===================== 독해 ===================== -->
     <section class="panel" id="panel-reading">
       <div class="card">
-        <!-- 지문 목록 -->
-        <div id="reading-list-view">
-          <p class="muted" style="margin-bottom:14px">지문을 선택하면 영문을 읽고 문제를 풀 수 있어요.</p>
-          <div class="options" id="reading-list"></div>
+        <div class="subtabs" id="r-subtabs">
+          <button class="subtab active" data-r="독해대의">대의파악</button>
+          <button class="subtab" data-r="독해빈칸">빈칸추론</button>
+          <button class="subtab" data-r="독해논리">순서·삽입</button>
+          <button class="subtab" data-r="독해일치">내용일치</button>
         </div>
-
-        <!-- 지문 상세 -->
-        <div id="reading-detail" style="display:none">
-          <button class="btn ghost small" id="reading-back" style="margin-bottom:14px">← 목록으로</button>
-          <div class="reading-title" id="reading-title"></div>
-          <div class="passage" id="reading-passage"></div>
-          <div id="reading-questions"></div>
+        <div class="row" style="margin-bottom:8px">
+          <span class="muted" id="r-label"></span>
+          <div class="spacer"></div>
+          <button class="btn ghost small" id="r-reshuffle">🔀 새 지문</button>
+        </div>
+        <div id="rq"></div>
+        <div class="card prac-foot">
+          <div class="row">
+            <button class="btn" id="r-grade">채점하기</button>
+            <div class="spacer"></div>
+            <span id="r-score" class="counter"></span>
+          </div>
         </div>
       </div>
     </section>
@@ -196,6 +245,7 @@
 
   <script src="data.js"></script>
   <script src="kichul.js"></script>
+  <script src="vocab.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

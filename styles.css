@@ -148,6 +148,56 @@ header p { color: var(--muted); font-size: 14px; margin-top: 4px; }
 .flash-back .ex { color: var(--text); margin-top: 14px; text-align: center; font-size: 15px; }
 .flash-back .ex .key { color: var(--warn); font-weight: 700; }
 
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip {
+  border: 1px solid var(--border);
+  background: var(--card-2);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.chip:hover { color: var(--text); border-color: var(--primary); }
+.chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+#dayN-chips .chip { padding: 5px 11px; }
+
+/* Day 목록 */
+.day-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+.day-card {
+  background: var(--card-2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 12px 10px; cursor: pointer; transition: all 0.12s; text-align: center;
+}
+.day-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+.day-card .d-no { font-weight: 800; font-size: 16px; }
+.day-card .d-range { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.day-card .d-prog { font-size: 13px; font-weight: 700; margin-top: 6px; color: var(--muted); }
+.day-card .d-bar { height: 6px; background: var(--bg); border-radius: 999px; overflow: hidden; margin-top: 6px; }
+.day-card .d-bar > div { height: 100%; background: var(--primary); transition: width 0.3s; }
+.day-card.done { border-color: var(--good); }
+.day-card.done .d-prog { color: var(--good); }
+.day-card.done .d-bar > div { background: var(--good); }
+.day-card.prog .d-prog { color: var(--warn); }
+
+.speak-btn {
+  border: none;
+  background: rgba(59, 130, 246, 0.18);
+  color: var(--primary);
+  border-radius: 50%;
+  width: 1.5em;
+  height: 1.5em;
+  font-size: 0.55em;
+  cursor: pointer;
+  vertical-align: middle;
+  line-height: 1;
+  transition: background 0.12s, transform 0.05s;
+}
+.speak-btn:hover { background: rgba(59, 130, 246, 0.32); }
+.speak-btn:active { transform: scale(0.9); }
+.flash-back .ex .speak-btn { font-size: 0.9em; width: 1.7em; height: 1.7em; }
+
 .flash-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .flash-nav .counter { color: var(--muted); font-size: 14px; }
 
@@ -331,6 +381,15 @@ header p { color: var(--muted); font-size: 14px; margin-top: 4px; }
 .exam-q .qbody .en { } /* 영문/한글 혼용 그대로 */
 .exam-foot { position: sticky; bottom: 10px; }
 #exam-footer { position: sticky; bottom: 10px; z-index: 5; }
+
+.q-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.yr-badge, .type-badge {
+  font-size: 12px; font-weight: 700; border-radius: 8px; padding: 2px 9px;
+}
+.yr-badge { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+.type-badge { background: rgba(59,130,246,.16); color: var(--primary); }
+.exam-q .qno { margin-bottom: 0; }
+.prac-foot { position: sticky; bottom: 10px; z-index: 5; margin-top: 14px; }
 
 .exam-q.correct-q { border-color: var(--good); }
 .exam-q.wrong-q { border-color: var(--bad); }
