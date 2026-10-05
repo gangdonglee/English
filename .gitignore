@@ -3,6 +3,9 @@
 *.hwp
 *.hwpx
 
+# 단어장 촬영 원본 (약 230MB — book.js에 옮겨 적음)
+단어/
+
 # OS / 편집기
 Thumbs.db
 .DS_Store

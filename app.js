@@ -11,7 +11,7 @@ const CIRC = ["①", "②", "③", "④"];
 /* --------------------- 저장소 --------------------- */
 const STORE_KEY = "gong9_eng_v2";
 const store = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
-const defaults = { solved: 0, correct: 0, knownWords: [], kichul: {}, dayN: 36, lastDay: 0, srs: {} };
+const defaults = { solved: 0, correct: 0, knownWords: [], kichul: {}, lastDay: 0, srs: {} };
 for (const k in defaults) if (!(k in store)) store[k] = defaults[k];
 // 기존 '외운 단어'(knownWords) -> SRS 1회 이관
 if (Object.keys(store.srs).length === 0 && store.knownWords.length) {
@@ -54,13 +54,19 @@ const TYPE_LABEL = {
 
 /* --------------------- 단어 풀 + 간격 반복(SRS) --------------------- */
 const DAY_MS = 864e5;
-const CAT_LABEL = { 기출: "기출", 빈출: "빈출 핵심", 실용중급: "실용·중급", 생활영어: "생활영어" };
 const SRS_INTERVAL = { 1: 1, 2: 2, 3: 4, 4: 8, 5: 16 }; // box별 복습 간격(일)
+const pad2 = (n) => String(n).padStart(2, "0");
+const pad4 = (n) => String(n).padStart(4, "0");
 
-function deckItems() {
-  const a = KICHUL_VOCAB.map((v) => ({ word: v.word, meaning: v.meaning, cat: "기출", sub: `${v.year}년 기출`, ex: "" }));
-  const b = VOCAB2025.map((v) => ({ word: v.word, meaning: v.meaning, cat: v.cat, sub: CAT_LABEL[v.cat] || v.cat, ex: v.ex || "" }));
-  return a.concat(b);
+/* 단어장 = 심슨 보카(book.js), 책 번호 순 */
+const DECK = BOOK_VOCAB.map((v) => ({ ...v, sub: `Day ${pad2(v.day)} · ${pad4(v.no)}` }));
+function deckItems() { return DECK; }
+/* 카드 뒷면: 유의어 · 예문 · 해석 · 어원 */
+function backExtra(v) {
+  return (v.syn ? `<div class="syn">= ${esc(v.syn)}</div>` : "") +
+    (v.ex ? `<div class="ex">${esc(v.ex)}</div>` : "") +
+    (v.exKo ? `<div class="ex-ko">${esc(v.exKo)}</div>` : "") +
+    (v.root ? `<div class="root">어원 ${esc(v.root)}</div>` : "");
 }
 function isLearned(w) { const s = store.srs[w]; return !!s && s.box >= 1; }
 function markWord(w, ok) {
@@ -86,8 +92,7 @@ function allQuestions() {
 function byType(types) { return allQuestions().filter((q) => types.includes(q.type)); }
 
 /* --------------------- 상단 통계 --------------------- */
-const TOTAL_VOCAB = (typeof KICHUL_VOCAB !== "undefined" ? KICHUL_VOCAB.length : 0) +
-                    (typeof VOCAB2025 !== "undefined" ? VOCAB2025.length : 0);
+const TOTAL_VOCAB = DECK.length;
 function renderStats() {
   const learned = deckItems().filter((it) => isLearned(it.word)).length;
   $("#stat-words").textContent = `${learned} / ${TOTAL_VOCAB}`;
@@ -257,17 +262,15 @@ const Kichul = (() => {
    2) 어휘 (기출 단어덱 + 어휘 기출문제)
    ========================================================================= */
 const Vocab = (() => {
-  /* 단어덱 — Day 단위 학습 (하루 N개) */
-  let pool = [], filter = "all", curDay = 0, dayOrder = [], idx = 0;
+  /* 단어덱 — 책의 Day 단위 학습 */
+  let pool = [], days = [], curDay = 0, dayOrder = [], idx = 0;
 
   function buildPool() {
-    let all = deckItems();            // 공통 풀(기출+추가어휘)
-    if (filter !== "all") all = all.filter((x) => x.cat === filter);
-    pool = all;                       // 안정적 순서 유지 (Day 경계 고정)
+    pool = deckItems();
+    days = [...new Set(pool.map((w) => w.day))].sort((a, b) => a - b);   // 사진이 있는 Day만
   }
-  const dayN = () => store.dayN || 36;
-  const dayCount = () => Math.max(1, Math.ceil(pool.length / dayN()));
-  const daySlice = (k) => pool.slice(k * dayN(), (k + 1) * dayN());
+  const dayCount = () => days.length;
+  const daySlice = (k) => pool.filter((w) => w.day === days[k]);
   const knownIn = (slice) => slice.filter((w) => isLearned(w.word)).length;
 
   function initDeck() { buildPool(); renderDays(); }
@@ -277,19 +280,19 @@ const Vocab = (() => {
     $("#deck-days").style.display = "block";
     const known = pool.filter((w) => isLearned(w.word)).length;
     $("#deck-overall").innerHTML =
-      `이 묶음 <b>${pool.length}</b>개 중 <b style="color:var(--good)">${known}</b>개 외움 · 하루 ${dayN()}개 기준 총 <b>${dayCount()}</b>일`;
+      `심슨 보카 <b>${pool.length}</b>개 중 <b style="color:var(--good)">${known}</b>개 외움 · 총 <b>${dayCount()}</b>개 Day`;
     const grid = $("#day-grid");
     grid.innerHTML = "";
     for (let k = 0; k < dayCount(); k++) {
       const slice = daySlice(k);
       const kn = knownIn(slice);
       const st = kn === 0 ? "todo" : (kn >= slice.length ? "done" : "prog");
-      const from = k * dayN() + 1, to = k * dayN() + slice.length;
+      const from = slice[0].no, to = slice[slice.length - 1].no;
       const card = document.createElement("div");
       card.className = "day-card " + st;
       card.innerHTML =
-        `<div class="d-no">Day ${k + 1}</div>` +
-        `<div class="d-range">${from}–${to}번</div>` +
+        `<div class="d-no">Day ${pad2(days[k])}</div>` +
+        `<div class="d-range">${pad4(from)}–${pad4(to)}</div>` +
         `<div class="d-prog">${kn} / ${slice.length}${st === "done" ? " ✓" : ""}</div>` +
         `<div class="d-bar"><div style="width:${pct(kn, slice.length)}%"></div></div>`;
       card.onclick = () => openDay(k);
@@ -316,12 +319,11 @@ const Vocab = (() => {
     $("#flash-front").innerHTML =
       `<div class="w">${esc(v.word)} ${spk("speak-word")}</div>` +
       `<div class="pos">${esc(v.sub)}${mark}</div><div class="hint">카드를 눌러 뜻 보기</div>`;
-    const exLine = v.ex ? `<div class="ex">${esc(v.ex)}</div>` : "";
     $("#flash-back").innerHTML =
-      `<div class="m">${esc(v.meaning || "")}</div>` + exLine +
+      `<div class="m">${esc(v.meaning || "")}</div>` + backExtra(v) +
       `<div class="ex" style="color:var(--muted);margin-top:10px">${esc(v.word)} ${spk("speak-word2")} · ${esc(v.sub)}</div>`;
     $("#flash-counter").textContent = `${idx + 1} / ${slice.length}`;
-    $("#day-head").textContent = `Day ${curDay + 1} · 외움 ${knownIn(slice)}/${slice.length}`;
+    $("#day-head").textContent = `Day ${pad2(days[curDay])} · 외움 ${knownIn(slice)}/${slice.length}`;
     $("#btn-known").textContent = s && s.box >= 1 ? "✓ 외움" : "✓ 외웠어요";
     if (TTS) {
       const onSpk = (e) => { e.stopPropagation(); speak(v.word); };
@@ -338,16 +340,6 @@ const Vocab = (() => {
     markWord(slice[dayOrder[idx]].word, ok);   // SRS 반영
     if (idx < slice.length - 1) { idx++; renderFlash(); }   // 다음 카드로
     else renderFlash();                                     // 마지막이면 상태만 갱신
-  }
-  function setFilter(cat) {
-    filter = cat;
-    $$("#deck-filter .chip").forEach((c) => c.classList.toggle("active", c.dataset.cat === cat));
-    initDeck();
-  }
-  function setDayN(n) {
-    store.dayN = n; save();
-    $$("#dayN-chips .chip").forEach((c) => c.classList.toggle("active", +c.dataset.n === n));
-    renderDays();
   }
   function resume() {
     buildPool();
@@ -385,9 +377,6 @@ const Vocab = (() => {
     $("#btn-day-prev").onclick = () => gotoDay(-1);
     $("#day-back").onclick = renderDays;
     $("#deck-resume").onclick = resume;
-    $$("#deck-filter .chip").forEach((c) => (c.onclick = () => setFilter(c.dataset.cat)));
-    $$("#dayN-chips .chip").forEach((c) => (c.onclick = () => setDayN(+c.dataset.n)));
-    $$("#dayN-chips .chip").forEach((c) => c.classList.toggle("active", +c.dataset.n === dayN()));
     $("#v-grade").onclick = () => sess.grade();
     $("#v-reshuffle").onclick = loadQuiz;
     $$("#panel-vocab .subtab").forEach((s) => (s.onclick = () => setMode(s.dataset.v)));
@@ -421,9 +410,8 @@ const Review = (() => {
     $("#rev-front").innerHTML =
       `<div class="w">${esc(v.word)} ${spk("rev-spk")}</div>` +
       `<div class="pos">${esc(v.sub)}</div><div class="hint">카드를 눌러 뜻 보기</div>`;
-    const exLine = v.ex ? `<div class="ex">${esc(v.ex)}</div>` : "";
     $("#rev-back").innerHTML =
-      `<div class="m">${esc(v.meaning || "")}</div>` + exLine +
+      `<div class="m">${esc(v.meaning || "")}</div>` + backExtra(v) +
       `<div class="ex" style="color:var(--muted);margin-top:10px">${esc(v.word)} ${spk("rev-spk2")} · ${esc(v.sub)}</div>`;
     $("#rev-count").textContent = `${idx + 1} / ${queue.length}`;
     if (TTS) {

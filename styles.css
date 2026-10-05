@@ -147,6 +147,9 @@ header p { color: var(--muted); font-size: 14px; margin-top: 4px; }
 .flash-back .m { font-size: 28px; font-weight: 700; color: var(--primary); }
 .flash-back .ex { color: var(--text); margin-top: 14px; text-align: center; font-size: 15px; }
 .flash-back .ex .key { color: var(--warn); font-weight: 700; }
+.flash-back .syn { color: var(--muted); margin-top: 8px; font-size: 14px; text-align: center; }
+.flash-back .ex-ko { color: var(--muted); margin-top: 4px; font-size: 13px; text-align: center; }
+.flash-back .root { color: var(--warn); margin-top: 10px; font-size: 12px; text-align: center; }
 
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip {
